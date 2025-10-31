@@ -1,0 +1,19 @@
+from django.contrib import admin #adminis 
+#CARGAR MEDIA O IMAGENES
+from django.conf import settings
+from django.conf.urls.static import static
+
+from django.urls import path, include  #urls
+ # vistas de la app
+from prueba import views
+# vistas del proyecto 
+
+urlpatterns = [
+    
+    path("__reload__/", include("django_browser_reload.urls")), #recargar pag
+    path('admin/', admin.site.urls),
+    path('', views.home, name='home'),       # página principal
+    path('blog/', include('blog.urls')),  # URLs de la app blog
+    path('users/', include('users.urls')),  # URLs de la app users
+]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

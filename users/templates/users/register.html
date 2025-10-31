@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Registro de Usuario</title>
+  </head>
+  <body>
+    <h1>Formulario de Registro</h1>
+    <form method="post">
+      {% csrf_token %} {{ form }}
+      <button type="submit">Enviar</button>
+    </form>
+  </body>
+</html>

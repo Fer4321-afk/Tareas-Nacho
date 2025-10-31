@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+<h1 class="text-6xl font-bold text-center mb-4">Hola, soy Fernando</h1>
+<p class="text-center text-gray-800 dark:text-gray-300 mb-6">
+    Bienvenido a mi primera página en Django.
+</p>
+<img src="{% static 'imagenes/LOL.jpg' %}" alt="Mi imagen" class="mx-auto rounded shadow-lg">
+{% endblock content %}
