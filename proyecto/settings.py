@@ -54,10 +54,10 @@ TAILWIND_APP_NAME = 'theme'
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 
 
-ROOT_URLCONF = 'prueba.urls'
+ROOT_URLCONF = 'proyecto.urls'
 # Archivos Staticos:
-STATIC_URL = 'prueba/static/'
-STATICFILES_DIRS = [BASE_DIR /'prueba' / 'static']
+STATIC_URL = 'proyecto/static/'
+STATICFILES_DIRS = [BASE_DIR /'proyecto' / 'static']
 
 #Cargar imagenes
 MEDIA_URL = '/media/'
@@ -66,7 +66,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [    os.path.join(BASE_DIR, 'prueba', 'templates'),  # para home.html
+        'DIRS': [    os.path.join(BASE_DIR, 'proyecto', 'templates'),  # para home.html
             os.path.join(BASE_DIR, 'theme')],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -80,7 +80,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'prueba.wsgi.application'
+WSGI_APPLICATION = 'proyecto.wsgi.application'
 
 
 # Database

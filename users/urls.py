@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'usuarios'  # <-- Esto define el namespace que usas en tu href
+app_name = 'users '  # <-- Esto define el namespace que usas en tu href
 
 urlpatterns = [
     path('register/', views.register_view, name='register'),

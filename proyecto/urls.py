@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 from django.urls import path, include  #urls
  # vistas de la app
-from prueba import views
+from proyecto import views
 # vistas del proyecto 
 
 urlpatterns = [
@@ -14,6 +14,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),       # página principal
     path('blog/', include('blog.urls')),  # URLs de la app blog
-    path('users/', include('users.urls')),  # URLs de la app users
+    path('users/', include(('users.urls','users'),namespace='users')),  # URLs de la app users
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
