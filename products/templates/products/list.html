@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+{% extends "base.html" %} {% block content %}
+
+<h1 class="text-5xl font-bold text-center mb-4">Productos</h1>
+
+<div class="product-list">
+  {% for product in product_list %}
+  <div>
+    <h2>{{ product.name }} - {{ product.category }}</h2>
+    <p>{{ product.description }}</p>
+    <p>Precio: ${{ product.price }}</p>
+    <p>Publicado por: {{ product.user.username }}</p>
+  </div>
+  {% empty %}
+  <p>No hay productos aún.</p>
+  {% endfor %}
+</div>
+
+<h2>Agregar nuevo producto</h2>
+<form
+  action="{% url 'products:new' %}"
+  method="post"
+  enctype="multipart/form-data"
+>
+  {% csrf_token %} {{ form }}
+  <button
+    type="submit"
+    class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+  >
+    Publicar producto
+  </button>
+</form>
+<a
+  href="{% url 'home' %}"
+  class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+  >Volver</a
+>
+{% endblock %}

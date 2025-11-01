@@ -2,7 +2,7 @@
 <h1>Login</h1>
 <form method="post">
   {% csrf_token %} {{ form.as_p }}
-  <button type="submit">Iniciar Sesión</button>
+  <button type="submit" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">Iniciar Sesión</button>
 </form>
 <a
         href="{% url 'home' %}"
