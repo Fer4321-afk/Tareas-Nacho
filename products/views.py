@@ -17,9 +17,5 @@ def post_new(request):
             newpost = form.save(commit=False)
             newpost.user = request.user
             newpost.save()
-            return redirect('products:list')
-    else:
-        form = UploadProduct()
-    product_list = Product.objects.all()[:20]
-    return render(request, 'products/list.html', {'product_list': product_list, 'form': form})
+    return redirect('products:product_list')
 # Create your views here.
