@@ -10,7 +10,6 @@ def product_list_view(request):
     form = UploadProduct()
     return render(request, 'products/list.html', {'product_list': product_list, 'form': form})
 
-@login_required(login_url="/users/login/")
 def post_new(request):
     if request.method == 'POST':
         form = UploadProduct(request.POST, request.FILES)

@@ -30,10 +30,20 @@
         >Login</a
       >
       {% if user.is_authenticated %}
-      <form action="{% url 'users:logout' %}" method="post">
+      <form
+        action="{% url 'users:logout' %}"
+        method="post"
+        class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+      >
         {% csrf_token %}
         <button type="submit">Logout</button>
       </form>
+      {% endif %} {% if user.is_authenticated %}
+      <a
+        href="{% url 'products:list' %}"
+        class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+        >Productos</a
+      >
       {% endif %}
     </nav>
 

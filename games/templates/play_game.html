@@ -1,0 +1,41 @@
+<h1>Sala: {{ game.room_name }}</h1>
+<h3>Usuario: {{ request.user.username }}</h3>
+
+{% if game.state == "won" %}
+<h2>Ganador: {{ game.winner }}</h2>
+{% elif game.state == "tie" %}
+<h2>¡Empate!</h2>
+{% endif %}
+
+<form method="POST">
+  {% csrf_token %}
+  <div style="display: grid; grid-template-columns: repeat(3, 100px); gap: 5px">
+    {% for i in "012345678" %} {% if game.board|slice:i|first == " " and
+    request.user == game.owner and game.state == "active" %}
+    <button name="move" value="{{ i }}" style="height: 100px; font-size: 40px">
+      ⬜
+    </button>
+    {% else %}
+    <div
+      style="
+        height: 100px;
+        font-size: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      {{ game.board|slice:i|first }}
+    </div>
+    {% endif %} {% endfor %}
+  </div>
+</form>
+
+{% if request.user == game.owner and game.state != "active" %}
+<form method="POST" action="">
+  {% csrf_token %}
+  <button type="submit" formaction="{% url 'game_list' %}">
+    Volver al listado
+  </button>
+</form>
+{% endif %}
