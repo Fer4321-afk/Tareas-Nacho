@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'users',
     'products',
     'games', 
+    # Estilos en formularios
+    'widget_tweaks',
 ]
 
 

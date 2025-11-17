@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% block content %}
+<h1>Partidas activas</h1>
+
+<form method="POST">
+  {% csrf_token %}
+  <input
+    type="text"
+    name="room_name"
+    placeholder="Nombre de la sala"
+    required
+  />
+  <button type="submit">Crear nueva partida</button>
+</form>
+
+<ul>
+  {% for game in games %}
+  <li>
+    <a href="{% url 'games:play_game' game.id %}">{{ game.room_name }}</a>
+    {% if game.state != 'active' %} ({{ game.state|title }}{% if game.winner %}
+    - Ganador: {{ game.winner }}{% endif %}) {% endif %}
+  </li>
+  {% empty %}
+  <li>No hay partidas activas</li>
+  {% endfor %}
+</ul>
+{% endblock %}
