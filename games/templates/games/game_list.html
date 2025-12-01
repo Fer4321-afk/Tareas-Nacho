@@ -1,26 +1,26 @@
-{% extends "base.html" %} {% block content %}
-<h1>Partidas activas</h1>
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-center">Partidas Tic Tac Toe</h1>
 
-<form method="POST">
+<form method="post" class="mb-6 flex justify-center gap-2">
   {% csrf_token %}
-  <input
-    type="text"
-    name="room_name"
-    placeholder="Nombre de la sala"
-    required
-  />
-  <button type="submit">Crear nueva partida</button>
+  <input type="text" name="room_name" placeholder="Nombre de la sala" class="border rounded px-3 py-2">
+  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Crear partida</button>
 </form>
 
-<ul>
+<ul class="space-y-2">
   {% for game in games %}
-  <li>
-    <a href="{% url 'games:play_game' game.id %}">{{ game.room_name }}</a>
-    {% if game.state != 'active' %} ({{ game.state|title }}{% if game.winner %}
-    - Ganador: {{ game.winner }}{% endif %}) {% endif %}
-  </li>
+    <li class="flex justify-between items-center p-4 border rounded">
+      <span>{{ game.room_name }} - {{ game.state }}</span>
+      <div class="flex gap-2">
+        <a href="{% url 'games:play' game.pk %}" class="bg-green-600 text-white px-3 py-1 rounded">Jugar / Ver</a>
+        {% if user == game.owner %}
+        <a href="{% url 'games:delete' game.pk %}" class="bg-red-600 text-white px-3 py-1 rounded">Eliminar</a>
+        {% endif %}
+      </div>
+    </li>
   {% empty %}
-  <li>No hay partidas activas</li>
+    <li class="text-center text-gray-500">No hay partidas activas</li>
   {% endfor %}
 </ul>
 {% endblock %}

@@ -2,12 +2,22 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Game(models.Model):
-    room_name = models.CharField(max_length=100, unique=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    board = models.CharField(max_length=9, default=' ' * 9)  # 9 casillas vacías
-    active_player = models.IntegerField(default=1)  # 1 o 2
-    state = models.CharField(max_length=20, default='active')  # active / won / tie
-    winner = models.CharField(max_length=20, blank=True, null=True)
+    room_name = models.CharField(max_length=100)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_games')
+    board = models.CharField(max_length=9, default='         ')  # 9 espacios
+ # 9 espacios vacíos
+    active_player = models.IntegerField(default=1)  # 1=X, 2=O
+    state = models.CharField(max_length=10, default="active")
+    winner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='won_games')
 
-    def __str__(self):
-        return self.room_name
+    def check_winner(self):
+        WIN_PATTERNS = [
+            (0,1,2), (3,4,5), (6,7,8),
+            (0,3,6), (1,4,7), (2,5,8),
+            (0,4,8), (2,4,6)
+        ]
+        board = self.board
+        for a,b,c in WIN_PATTERNS:
+            if board[a] == board[b] == board[c] and board[a] != " ":
+                return True
+        return False

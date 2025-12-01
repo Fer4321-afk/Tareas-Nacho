@@ -1,64 +1,79 @@
-{% extends "base.html" %} {% block content %}
-<h1>{{ game.room_name }}</h1>
-<p>Jugador actual: {{ request.user.username }}</p>
+{% extends "base.html" %}
 
-{% if game.state == "active" %} {% if request.user == game.owner %}
-<form method="POST">
-  {% csrf_token %}
-  <div
-    style="display: grid; grid-template-columns: repeat(3, 100px); gap: 10px"
-  >
-    {% for i in "012345678" %} {% with i_int=i|add:"0"|int %} {% if
-    game.board|slice:i_int|first == " " %}
-    <button
-      type="submit"
-      name="move"
-      value="{{ i_int }}"
-      style="height: 100px; font-size: 2rem"
-    >
-      ⬜
-    </button>
-    {% else %}
-    <div
-      style="
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-      "
-    >
-      {% if game.board|slice:i_int|first == "X" %}❌{% else %}⭕{% endif %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10">
+
+    <h1 class="text-3xl font-bold text-center mb-2 text-blue-600">
+        Sala: {{ game.room_name }}
+    </h1>
+
+    {% if game.state == "active" %}
+        <p class="text-center text-gray-700 mb-4">
+            Turno de: {% if game.active_player == 1 %}X{% else %}O{% endif %}
+        </p>
+    {% elif game.state == "won" %}
+        <p class="text-center text-green-600 text-2xl font-bold mb-4">
+            ¡Ganó {{ game.winner.username }}! 🏆
+        </p>
+    {% elif game.state == "tie" %}
+        <p class="text-center text-yellow-600 text-2xl font-bold mb-4">
+            ¡Empate! 🤝
+        </p>
+    {% endif %}
+    
+    <!-- TABLERO SIMPLE -->
+{% if game.state == "active" %}
+<form method="post">
+    {% csrf_token %}
+{% endif %}
+
+<div class="grid grid-cols-3 gap-2 w-max mx-auto mt-6">
+    {% for i in "123456789" %}
+    <div class="w-20 h-20 border-2 border-gray-300 bg-white flex items-center justify-center">
+        {% with index=forloop.counter0 %}
+            {% if game.state == "active" and game.board|slice:index|first == " " %}
+                <button type="submit" name="square" value="{{ index }}" class="w-full h-full">
+                    &nbsp;
+                </button>
+            {% else %}
+                {% if game.board|slice:index|first == "X" %}
+                    X
+                {% elif game.board|slice:index|first == "O" %}
+                    O
+                {% else %}
+                    &nbsp;
+                {% endif %}
+            {% endif %}
+        {% endwith %}
     </div>
-    {% endif %} {% endwith %} {% endfor %}
-  </div>
-</form>
-{% else %}
-<p>Solo el propietario puede jugar. Estás en modo espectador 👀</p>
-<div style="display: grid; grid-template-columns: repeat(3, 100px); gap: 10px">
-  {% for i in "012345678" %} {% with i_int=i|add:"0"|int %}
-  <div
-    style="
-      height: 100px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-    "
-  >
-    {% if game.board|slice:i_int|first == " " %}⬜{% elif
-    game.board|slice:i_int|first == "X" %}❌{% else %}⭕{% endif %}
-  </div>
-  {% endwith %} {% endfor %}
+    {% endfor %}
 </div>
-{% endif %} {% else %}
-<h2>
-  {% if game.state == "tie" %}🤝 ¡Empate!{% else %}🏆 Ganador: {{ game.winner
-  }}{% endif %}
-</h2>
-{% if request.user == game.owner %}
-<form method="POST">
-  {% csrf_token %}
-  <button type="submit" name="delete" value="1">Cerrar sala</button>
+
+{% if game.state == "active" %}
 </form>
-{% endif %} {% endif %} {% endblock %}
+{% endif %}
+    {% if game.state == "active" %}
+    {% endif %}
+
+
+
+
+
+    <!-- Botones -->
+    <div class="text-center mt-6 space-y-3">
+        {% if request.user == game.owner %}
+            <form method="post" action="{% url 'games:delete' game.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition">
+                    Cerrar sala             
+                </button>
+            </form>
+        {% endif %}
+        
+        <a href="{% url 'games:list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition inline-block">
+            Volver al listado de juegos
+        </a>
+    </div>
+
+</div>
+{% endblock %}
