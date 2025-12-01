@@ -1,8 +1,7 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="max-w-md mx-auto mt-10">
 
+<div class="max-w-md mx-auto mt-10">
     <h1 class="text-3xl font-bold text-center mb-2 text-blue-600">
         Sala: {{ game.room_name }}
     </h1>
@@ -20,60 +19,71 @@
             ¡Empate! 🤝
         </p>
     {% endif %}
-    
-    <!-- TABLERO SIMPLE -->
+ 
+<!-- TABLERO 3x3 BÁSICO -->
 {% if game.state == "active" %}
 <form method="post">
     {% csrf_token %}
 {% endif %}
 
-<div class="grid grid-cols-3 gap-2 w-max mx-auto mt-6">
-    {% for i in "123456789" %}
-    <div class="w-20 h-20 border-2 border-gray-300 bg-white flex items-center justify-center">
-        {% with index=forloop.counter0 %}
-            {% if game.state == "active" and game.board|slice:index|first == " " %}
-                <button type="submit" name="square" value="{{ index }}" class="w-full h-full">
-                    &nbsp;
-                </button>
-            {% else %}
-                {% if game.board|slice:index|first == "X" %}
-                    X
-                {% elif game.board|slice:index|first == "O" %}
-                    O
-                {% else %}
-                    &nbsp;
-                {% endif %}
-            {% endif %}
-        {% endwith %}
-    </div>
-    {% endfor %}
+<div style="display: grid; grid-template-columns: 80px 80px 80px; gap: 5px;">
+    <!-- Fila 1 -->
+    <button type="submit" name="square" value="0" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.0|default:" " }}
+    </button>
+    <button type="submit" name="square" value="1" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.1|default:" " }}
+    </button>
+    <button type="submit" name="square" value="2" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.2|default:" " }}
+    </button>
+    
+    <!-- Fila 2 -->
+    <button type="submit" name="square" value="3" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.3|default:" " }}
+    </button>
+    <button type="submit" name="square" value="4" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.4|default:" " }}
+    </button>
+    <button type="submit" name="square" value="5" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.5|default:" " }}
+    </button>
+    
+    <!-- Fila 3 -->
+    <button type="submit" name="square" value="6" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.6|default:" " }}
+    </button>
+    <button type="submit" name="square" value="7" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.7|default:" " }}
+    </button>
+    <button type="submit" name="square" value="8" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+        {{ game.board.8|default:" " }}
+    </button>
 </div>
 
 {% if game.state == "active" %}
 </form>
 {% endif %}
-    {% if game.state == "active" %}
-    {% endif %}
-
+   
 
 
 
 
     <!-- Botones -->
-    <div class="text-center mt-6 space-y-3">
+    <div class="text-center mt-6">
         {% if request.user == game.owner %}
-            <form method="post" action="{% url 'games:delete' game.pk %}">
+            <form method="post" action="{% url 'games:delete' game.pk %}" class="mb-3">
                 {% csrf_token %}
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition">
-                    Cerrar sala             
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold">
+                    Cerrar sala
                 </button>
             </form>
         {% endif %}
         
-        <a href="{% url 'games:list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition inline-block">
-            Volver al listado de juegos
+        <a href="{% url 'games:list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold inline-block">
+            Volver al listado
         </a>
     </div>
-
 </div>
+
 {% endblock %}
