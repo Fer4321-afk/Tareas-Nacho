@@ -2,10 +2,12 @@
 {% block content %}
 
 <div class="max-w-md mx-auto mt-10">
+
     <h1 class="text-3xl font-bold text-center mb-2 text-blue-600">
         Sala: {{ game.room_name }}
     </h1>
 
+    <!-- ESTADO DEL JUEGO (turno/ganador/empate) -->
     {% if game.state == "active" %}
         <p class="text-center text-gray-700 mb-4">
             Turno de: {% if game.active_player == 1 %}X{% else %}O{% endif %}
@@ -20,67 +22,76 @@
         </p>
     {% endif %}
  
-<!-- TABLERO 3x3 BÁSICO -->
-{% if game.state == "active" %}
-<form method="post">
-    {% csrf_token %}
-{% endif %}
+    <!-- TABLERO DE JUEGO -->
+    {% if game.state == "active" %}
+    <form method="post">
+        {% csrf_token %}  
+    {% endif %}
 
-<div style="display: grid; grid-template-columns: 80px 80px 80px; gap: 5px;">
-    <!-- Fila 1 -->
-    <button type="submit" name="square" value="0" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.0|default:" " }}
-    </button>
-    <button type="submit" name="square" value="1" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.1|default:" " }}
-    </button>
-    <button type="submit" name="square" value="2" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.2|default:" " }}
-    </button>
-    
-    <!-- Fila 2 -->
-    <button type="submit" name="square" value="3" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.3|default:" " }}
-    </button>
-    <button type="submit" name="square" value="4" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.4|default:" " }}
-    </button>
-    <button type="submit" name="square" value="5" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.5|default:" " }}
-    </button>
-    
-    <!-- Fila 3 -->
-    <button type="submit" name="square" value="6" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.6|default:" " }}
-    </button>
-    <button type="submit" name="square" value="7" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.7|default:" " }}
-    </button>
-    <button type="submit" name="square" value="8" style="width:80px; height:80px; border:2px solid black; font-size:30px;">
-        {{ game.board.8|default:" " }}
-    </button>
-</div>
+    <div style="display: grid; grid-template-columns: 80px 80px 80px; gap: 5px; margin: 20px auto; width: 250px;">
+        
+        <!--  FILA 1 (Casillas 0, 1, 2) -->
+        <button type="submit" name="square" value="0" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.0|default:" " }}  
+        </button>
+        <button type="submit" name="square" value="1" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.1|default:" " }}
+        </button>
+        <button type="submit" name="square" value="2" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.2|default:" " }}
+        </button>
+        
+        <!--  FILA 2 (Casillas 3, 4, 5) -->
+        <button type="submit" name="square" value="3" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.3|default:" " }}
+        </button>
+        <button type="submit" name="square" value="4" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.4|default:" " }}
+        </button>
+        <button type="submit" name="square" value="5" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.5|default:" " }}
+        </button>
+        
+        <!-- FILA 3 (Casillas 6, 7, 8) -->
+        <button type="submit" name="square" value="6" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.6|default:" " }}
+        </button>
+        <button type="submit" name="square" value="7" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.7|default:" " }}
+        </button>
+        <button type="submit" name="square" value="8" 
+                style="width:80px; height:80px; border:2px solid black; font-size:30px;">
+            {{ game.board.8|default:" " }}
+        </button>
+    </div>
 
-{% if game.state == "active" %}
-</form>
-{% endif %}
-   
+    {% if game.state == "active" %}
+    </form>
+    {% endif %}
 
 
 
-
-    <!-- Botones -->
+    <!-- BOTONES -->
     <div class="text-center mt-6">
         {% if request.user == game.owner %}
             <form method="post" action="{% url 'games:delete' game.pk %}" class="mb-3">
                 {% csrf_token %}
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold">
-                    Cerrar sala
+                    Cerrar sala 
                 </button>
             </form>
         {% endif %}
-        
-        <a href="{% url 'games:list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold inline-block">
+
+        <a href="{% url 'games:list' %}" 
+           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold inline-block">
             Volver al listado
         </a>
     </div>

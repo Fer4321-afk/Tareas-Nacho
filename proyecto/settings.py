@@ -38,7 +38,18 @@ INSTALLED_APPS = [
     'games',
     # Estilos en formularios
     'widget_tweaks',
+    # Canales para Websockets
+    'channels',
 ]
+ # Configuracion de canales
+ASGI_APPLICATION = 'proyecto.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
+
 
 
 MIDDLEWARE = [ #peticiones
@@ -142,3 +153,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/games/'
 LOGOUT_REDIRECT_URL = '/users/login/'
+
