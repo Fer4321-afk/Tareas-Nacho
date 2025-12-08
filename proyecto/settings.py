@@ -21,6 +21,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+     # Canales para Websockets
+    'channels',
+     'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,11 +41,11 @@ INSTALLED_APPS = [
     'games',
     # Estilos en formularios
     'widget_tweaks',
-    # Canales para Websockets
-    'channels',
+   
 ]
  # Configuracion de canales
 ASGI_APPLICATION = 'proyecto.asgi.application'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',

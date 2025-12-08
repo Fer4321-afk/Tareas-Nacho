@@ -1,0 +1,30 @@
+<!-- prueba_websocket.html - Guarda en cualquier carpeta -->
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Prueba WebSocket</h1>
+    <div id="output"></div>
+    
+    <script>
+        const ws = new WebSocket('ws://127.0.0.1:8000/ws/tictactoe/');
+        const output = document.getElementById('output');
+        
+        ws.onopen = () => {
+            console.log('✅ Conectado!');
+            output.innerHTML += '<p>✅ Conectado al WebSocket</p>';
+            ws.send(JSON.stringify({test: 'Hola Django'}));
+        };
+        
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            console.log('📩:', data);
+            output.innerHTML += `<p>📩: ${JSON.stringify(data)}</p>`;
+        };
+        
+        ws.onerror = (error) => {
+            console.error('💥 Error:', error);
+            output.innerHTML += `<p style="color:red">💥 Error: ${error}</p>`;
+        };
+    </script>
+</body>
+</html>

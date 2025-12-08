@@ -1,50 +1,51 @@
+# games/consumers.py - COPIA Y PEGA ESTO
+
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class GameConsumer(AsyncWebsocketConsumer):
-    # 1. CUANDO UN JUGADOR SE CONECTA
+    """
+    Consumer básico para Tic Tac Toe.
+    Por ahora solo hace eco para probar la conexión.
+    """
+    
     async def connect(self):
-        # Obtenemos el ID de la sala de la URL
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
-        # Creamos un nombre único para el grupo (todos en la misma sala)
-        self.room_group_name = f'game_{self.room_id}'
+        """Cuando un cliente se conecta"""
+        print("🟢 [CONSUMER] Cliente intentando conectar...")
         
-        # Añadimos este cliente al grupo de la sala
-        await self.channel_layer.group_add(
-            self.room_group_name,  # Nombre del grupo
-            self.channel_name      # Identificador único del cliente
-        )
-        
-        # Aceptamos la conexión WebSocket
+        # Aceptar la conexión
         await self.accept()
-        print(f"✅ Jugador conectado a sala {self.room_id}")
-    
-    # 2. CUANDO UN JUGADOR SE DESCONECTA
-    async def disconnect(self, close_code):
-        # Lo removemos del grupo
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-        print(f"❌ Jugador desconectado de sala {self.room_id}")
-    
-    # 3. CUANDO RECIBIMOS UN MENSAJE (movimiento o chat)
-    async def receive(self, text_data):
-        # El mensaje viene como JSON: {"type": "move", "square": 4, "player": "Ana"}
-        data = json.loads(text_data)
-        print(f"📨 Mensaje recibido: {data}")
+        print("✅ [CONSUMER] Cliente CONECTADO")
         
-        # Reenviamos el mensaje a TODOS en la misma sala
-        await self.channel_layer.group_send(
-            self.room_group_name,  # Enviar a este grupo
-            {
-                'type': 'game_message',  # Qué función ejecutar en cada cliente
-                'data': data              # Los datos del mensaje
+        # Enviar mensaje de bienvenida
+        await self.send(text_data=json.dumps({
+            'type': 'connection',
+            'message': '¡Conectado al juego!'
+        }))
+
+    async def disconnect(self, close_code):
+        """Cuando un cliente se desconecta"""
+        print(f"🔴 [CONSUMER] Cliente desconectado. Código: {close_code}")
+
+    async def receive(self, text_data):
+        """Cuando recibimos un mensaje del cliente"""
+        try:
+            # Parsear los datos JSON
+            data = json.loads(text_data)
+            print(f"📩 [CONSUMER] Mensaje recibido: {data}")
+            
+            # Responder con eco (solo para prueba)
+            response = {
+                'type': 'echo',
+                'received': data,
+                'message': 'Mensaje recibido correctamente'
             }
-        )
-    
-    # 4. FUNCIÓN QUE SE EJECUTA EN CADA CLIENTE DEL GRUPO
-    async def game_message(self, event):
-        # 'event' contiene los datos que enviamos en group_send()
-        # Enviamos el mensaje por el WebSocket a este cliente específico
-        await self.send(text_data=json.dumps(event['data']))
+            
+            await self.send(text_data=json.dumps(response))
+            
+        except json.JSONDecodeError:
+            # Si no es JSON válido
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'Formato JSON inválido'
+            }))
