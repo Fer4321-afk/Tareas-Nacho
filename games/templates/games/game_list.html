@@ -11,11 +11,21 @@
 <ul class="space-y-2">
   {% for game in games %}
     <li class="flex justify-between items-center p-4 border rounded">
-      <span>{{ game.room_name }} - {{ game.state }}</span>
+      <div>
+        <span class="font-bold">{{ game.room_name }}</span> 
+        <span class="text-sm text-gray-600 ml-2">({{ game.state }})</span>
+        <div class="text-sm text-gray-500">
+          {% if game.player1 %}Jugador 1: {{ game.player1.username }}{% endif %}
+          {% if game.player2 %} | Jugador 2: {{ game.player2.username }}{% endif %}
+        </div>
+      </div>
       <div class="flex gap-2">
         <a href="{% url 'games:play' game.pk %}" class="bg-green-600 text-white px-3 py-1 rounded">Jugar / Ver</a>
         {% if user == game.owner %}
-        <a href="{% url 'games:delete' game.pk %}" class="bg-red-600 text-white px-3 py-1 rounded">Eliminar</a>
+        <form method="post" action="{% url 'games:delete' game.pk %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded">Eliminar</button>
+        </form>
         {% endif %}
       </div>
     </li>

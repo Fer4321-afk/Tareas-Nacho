@@ -22,8 +22,9 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
      # Canales para Websockets
+    'daphne',
     'channels',
-     'daphne',
+    # django por defecto
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

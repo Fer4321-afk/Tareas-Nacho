@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Game
 from django.contrib.auth.decorators import login_required
@@ -8,7 +9,12 @@ def game_list(request):
     if request.method == "POST":
         room_name = request.POST.get('room_name')
         if room_name:
-            Game.objects.create(room_name=room_name, owner=request.user)
+            # Crear juego asignando al creador como player1
+            game = Game.objects.create(
+                room_name=room_name, 
+                owner=request.user,
+                player1=request.user  # <-- Asignar como jugador 1
+            )
         return redirect('games:list')
     
     # Mostrar todas las salas
@@ -19,24 +25,34 @@ def game_list(request):
 def play_game(request, pk):
     # Buscar el juego por ID
     game = get_object_or_404(Game, pk=pk)
-
+    
+    # Asignar jugador 2 si no hay y es diferente al creador
+    if not game.player2 and request.user != game.player1:
+        game.player2 = request.user
+        game.save()
+    
     # Si el usuario hace un movimiento (click en casilla)
     if request.method == "POST" and game.state == 'active':
+        # Verificar que el usuario puede mover
+        if not game.can_move(request.user):
+            return redirect('games:play', pk=pk)
+        
         # Obtener qué casilla clickeó (0 a 8)
         square_id = int(request.POST.get('square'))
         
-        # Convertir el tablero de string a lista: "   " -> [" ", " ", " "]
+        # Convertir el tablero de string a lista
         board_list = list(game.board)
         
         # Solo hacer movimiento si la casilla está vacía
         if board_list[square_id] == ' ':
-            # Poner X o O según turno
-            if game.active_player == 1:
+            # Poner X o O según turno y jugador
+            if game.player1 == request.user:
                 board_list[square_id] = 'X'
-                game.active_player = 2  # Cambiar turno a O
             else:
                 board_list[square_id] = 'O'
-                game.active_player = 1  # Cambiar turno a X
+            
+            # Cambiar turno
+            game.is_player1_turn = not game.is_player1_turn
             
             # Guardar tablero actualizado
             game.board = ''.join(board_list)
@@ -55,8 +71,33 @@ def play_game(request, pk):
         # Recargar la página para mostrar cambios
         return redirect('games:play', pk=pk)
 
-    # Mostrar la página del juego
-    return render(request, 'games/play_game.html', {'game': game})
+    # ============================================
+    # PREPARAR DATOS PARA WEBSOCKET
+    # ============================================
+    
+    # Definir can_move aquí antes de usarla
+    can_move = game.can_move(request.user)
+    
+    game_data = json.dumps({
+        'game_id': game.id,
+        'room_name': game.room_name,
+        'player': request.user.username,
+        'player_id': request.user.id,
+        'is_player1': game.player1 == request.user,
+        'is_player2': game.player2 == request.user,
+        'board': game.board,
+        'state': game.state,
+        'is_player1_turn': game.is_player1_turn,
+        'can_move': can_move 
+      
+    })
+    
+    # Mostrar la página del juego CON datos WebSocket
+    return render(request, 'games/play_game.html', {
+        'game': game,
+        'game_data': game_data,
+        'can_move': can_move  
+    })
 
 @login_required
 def delete_game(request, pk):
