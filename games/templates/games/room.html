@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sala {{ room.code }}</title>
+    <style>
+        .board { display: grid; grid-template-columns: repeat(3, 80px); gap: 5px; }
+        .cell { width: 80px; height: 80px; border: 2px solid black; font-size: 40px; text-align: center; line-height: 80px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Sala: {{ room.code }}</h1>
+    <div id="status">Conectando...</div>
+    
+    {% if player_symbol %}
+    <p>Tú eres: <strong>{{ player_symbol }}</strong></p>
+    {% endif %}
+    
+    <div class="board">
+        <div class="cell" onclick="move(0)" id="c0"></div>
+        <div class="cell" onclick="move(1)" id="c1"></div>
+        <div class="cell" onclick="move(2)" id="c2"></div>
+        <div class="cell" onclick="move(3)" id="c3"></div>
+        <div class="cell" onclick="move(4)" id="c4"></div>
+        <div class="cell" onclick="move(5)" id="c5"></div>
+        <div class="cell" onclick="move(6)" id="c6"></div>
+        <div class="cell" onclick="move(7)" id="c7"></div>
+        <div class="cell" onclick="move(8)" id="c8"></div>
+    </div>
+    
+    <div style="margin-top:20px">
+        <input type="text" id="msg" placeholder="Mensaje">
+        <button onclick="send()">Chat</button>
+        <div id="chat" style="height:100px;overflow-y:auto;border:1px solid #ccc;margin-top:10px"></div>
+    </div>
+    
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws/game/{{ room.code }}/`);
+        ws.onopen = () => {
+            document.getElementById('status').textContent = '✅ Conectado';
+        };
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if (data.type === 'chat') {
+                document.getElementById('chat').innerHTML += `<div>${data.user}: ${data.message}</div>`;
+            }
+            if (data.type === 'move') {
+                const cell = document.getElementById('c' + data.position);
+                cell.textContent = data.player;
+            }
+        };
+        function move(pos) {
+            ws.send(JSON.stringify({type:'move', position:pos, player:'{{ player_symbol }}'}));
+        }
+        function send() {
+            const msg = document.getElementById('msg').value;
+            if (msg) {
+                ws.send(JSON.stringify({type:'chat', message:msg, user:'{{ user.username }}'}));
+                document.getElementById('msg').value = '';
+            }
+        }
+    </script>
+</body>
+</html>

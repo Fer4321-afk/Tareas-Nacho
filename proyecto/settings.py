@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Apps propias
     'blog',
-    # Apps o cosas Tailwind
+    # Apps
     'tailwind',
     'django_browser_reload',
     'theme',
