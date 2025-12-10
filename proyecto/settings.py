@@ -22,8 +22,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
      # Canales para Websockets
-    'daphne',
-    'channels',
     # django por defecto
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,17 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Apps 
     'blog',
-    'games',
-    'games2',
     'products',
     'users',
     #apps de django
     'theme',
     'tailwind',
     'django_browser_reload',
-    
-    
-    
     # Estilos en formularios
     'widget_tweaks',
    
