@@ -31,15 +31,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Apps propias
+    # Apps 
     'blog',
-    # Apps
+    'games',
+    'games2',
+    'products',
+    'users',
+    #apps de django
+    'theme',
     'tailwind',
     'django_browser_reload',
-    'theme',
-    'users',
-    'products',
-    'games',
+    
+    
+    
     # Estilos en formularios
     'widget_tweaks',
    
@@ -50,6 +54,9 @@ ASGI_APPLICATION = 'proyecto.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        "CONFIG": {
+            "host": [("127.0.0.1", 6379)],
+        },
     },
 }
 

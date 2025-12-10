@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - {{ game.room_name }}</title>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🎮 {{ game.room_name }}</h1>
+        <p>
+            Jugador X: <strong>{{ game.player_x.username }}</strong> |
+            Jugador O: <strong>{{ game.player_o.username|default:"Esperando..." }}</strong>
+        </p>
+    </div>
+    
+    <div class="game-info">
+        <div id="game-status" class="status {{ game.state }}">
+            {{ game.get_state_display }}
+        </div>
+        
+        <div id="current-player">
+            {% if game.state == 'active' %}
+                <p>Turno de: <strong id="turn-indicator">{{ game.current_player }}</strong></p>
+            {% endif %}
+        </div>
+        
+        <div class="game-board" id="game-board">
+            {% for i in range_9 %}
+            <div class="cell" data-position="{{ i }}" onclick="makeMove({{ i }})">
+                {% if game.board.i %}
+                    <span class="{{ game.board.i }}">{{ game.board.i }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{% url 'game_list' %}" class="btn">Volver a la lista</a>
+            {% if user == game.owner %}
+                <a href="{% url 'delete_game' game.room_name %}" class="btn" 
+                   onclick="return confirm('¿Eliminar este juego?')">Eliminar Sala</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="chat-container">
+        <h3>Chat de la Sala</h3>
+        <div id="chat-messages"></div>
+        <div>
+            <input type="text" id="chat-input" placeholder="Escribe un mensaje...">
+            <button class="btn" onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+    
+    {{ game_data|json_script:"game-data" }}
+    
+    <script>
+        // Datos iniciales del juego
+        const gameData = JSON.parse(document.getElementById('game-data').textContent);
+        const roomName = gameData.room_name;
+        const currentUser = gameData.current_user;
+        
+        // Conexión WebSocket
+        const gameSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/game/' + roomName + '/'
+        );
+        
+        gameSocket.onopen = function(e) {
+            console.log('Conectado al WebSocket');
+            // Enviar mensaje de unión
+            gameSocket.send(JSON.stringify({
+                'action': 'join'
+            }));
+        };
+        
+        gameSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'game_update' || data.type === 'game_state') {
+                updateGameState(data.data);
+            } else if (data.type === 'chat_message') {
+                addChatMessage(data.username, data.message);
+            }
+        };
+        
+        gameSocket.onclose = function(e) {
+            console.log('Desconectado del WebSocket');
+        };
+        
+        function updateGameState(state) {
+            // Actualizar tablero
+            const board = document.getElementById('game-board');
+            state.board.forEach((cell, index) => {
+                const cellElement = board.querySelector(`[data-position="${index}"]`);
+                cellElement.innerHTML = cell ? `<span class="${cell}">${cell}</span>` : '';
+            });
+            
+            // Actualizar estado
+            const statusElement = document.getElementById('game-status');
+            statusElement.textContent = getStateText(state.state);
+            statusElement.className = 'status ' + state.state;
+            
+            // Actualizar turno
+            const turnIndicator = document.getElementById('turn-indicator');
+            if (turnIndicator) {
+                turnIndicator.textContent = state.current_player;
+            }
+            
+            // Deshabilitar celdas si el juego terminó
+            if (state.state !== 'active') {
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.style.cursor = 'default';
+                    cell.onclick = null;
+                });
+            }
+        }
+        
+        function getStateText(state) {
+            const states = {
+                'waiting': 'Esperando jugador O...',
+                'active': 'En juego',
+                'won_x': '¡Ganó X!',
+                'won_o': '¡Ganó O!',
+                'tie': '¡Empate!',
+                'cancelled': 'Juego cancelado'
+            };
+            return states[state] || state;
+        }
+        
+        function makeMove(position) {
+            // Determinar qué jugador es el usuario actual
+            let playerSymbol = null;
+            if (currentUser === gameData.player_x) {
+                playerSymbol = 'X';
+            } else if (currentUser === gameData.player_o) {
+                playerSymbol = 'O';
+            }
+            
+            if (!playerSymbol) {
+                alert('Solo los jugadores pueden hacer movimientos');
+                return;
+            }
+            
+            gameSocket.send(JSON.stringify({
+                'action': 'move',
+                'position': position,
+                'player': playerSymbol
+            }));
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                gameSocket.send(JSON.stringify({
+                    'action': 'chat',
+                    'message': message
+                }));
+                input.value = '';
+            }
+        }
+        
+        function addChatMessage(username, message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Permitir enviar mensajes con Enter
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Actualizar estado inicial
+        updateGameState(gameData);
+    </script>
+</body>
+</html>

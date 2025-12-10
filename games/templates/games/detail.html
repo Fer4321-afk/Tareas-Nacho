@@ -1,0 +1,30 @@
+<h2>Juego {{ game.id }}</h2>
+
+<p>Turno actual: <strong>{{ game.turno }}</strong></p>
+
+<table>
+    {% for fila in game.tablero %}
+    <tr>
+        {% for celda in fila %}
+        <td>{{ celda }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+<div>
+    <a href="{% url 'hacer_movimiento' juego_id=game.id %}">Hacer movimiento</a>
+</div>
+
+<div>
+    <a href="{% url 'eliminar_juego' juego_id=game.id %}">Eliminar juego</a>
+</div>
+
+{% if not game.jugador2 %}
+<div>
+    <a href="{% url 'game_join' juego_id=game.id %}">Unirse como Jugador 2</a>
+</div>
+{% endif %}
+
+<br>
+<a href="{% url 'lista_juegos' %}">Volver a lista</a>

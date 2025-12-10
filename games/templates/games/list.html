@@ -1,30 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Tic Tac Toe - Salas</title>
-</head>
-<body>
-    <h1>🎮 Salas de Tic Tac Toe</h1>
-    
-    {% if user.is_authenticated %}
-    <a href="/games/create/">Crear Nueva Sala</a>
-    
-    <h3>Salas Disponibles:</h3>
-    {% if rooms %}
-        {% for room in rooms %}
-        <div style="border:1px solid #ccc; padding:10px; margin:5px">
-            <strong>Sala {{ room.code }}</strong><br>
-            Jugador X: {{ room.player1.username }}<br>
-            Jugador O: {% if room.player2 %}{{ room.player2.username }}{% else %}Esperando...{% endif %}
-            <a href="/games/room/{{ room.code }}/" style="float:right">Entrar</a>
-        </div>
-        {% endfor %}
-    {% else %}
-        <p>No hay salas. ¡Crea la primera!</p>
-    {% endif %}
-    
-    {% else %}
-    <p>Debes <a href="/users/login/">iniciar sesión</a> para jugar</p>
-    {% endif %}
-</body>
-</html>
+<h2>Lista de Juegos</h2>
+
+<div>
+    <a href="{% url 'crear_juego' %}">Crear nuevo juego</a>
+</div>
+
+<ul>
+    {% for g in games %}
+    <li>
+        <a href="{% url 'ver_juego' juego_id=g.id %}">
+            Partida {{ g.id }} - turno de {{ g.turno }}
+        </a>
+    </li>
+    {% empty %}
+    <li>No hay juegos disponibles</li>
+    {% endfor %}
+</ul>

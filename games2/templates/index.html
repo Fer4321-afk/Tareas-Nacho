@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - Lista de Juegos</title>
+    
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 Tic Tac Toe - Juegos Activos</h1>
+        <p>Bienvenido, {{ user.username }}</p>
+    </div>
+    
+    <div class="create-game">
+        <h2>Crear Nuevo Juego</h2>
+        <form method="post" action="{% url 'create_game' %}">
+            {% csrf_token %}
+            <input type="text" name="room_name" placeholder="Nombre de la sala" required>
+            <button type="submit" class="btn">Crear Juego</button>
+        </form>
+    </div>
+    
+    <div class="game-list">
+        <h2>Juegos Disponibles</h2>
+        {% if active_games %}
+            {% for game in active_games %}
+                <div class="game-item">
+                    <div>
+                        <strong>{{ game.room_name }}</strong><br>
+                        <small>
+                            Creado por: {{ game.owner.username }} |
+                            Jugadores: {{ game.player_x.username }} 
+                            {% if game.player_o %}, {{ game.player_o.username }}{% endif %}
+                        </small>
+                    </div>
+                    <div>
+                        <span class="status {{ game.state }}">
+                            {{ game.get_state_display }}
+                        </span>
+                        <a href="{% url 'game_detail' game.room_name %}" class="btn btn-join">
+                            {% if game.state == 'waiting' %}Unirse{% else %}Ver{% endif %}
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No hay juegos activos. ¡Crea uno!</p>
+        {% endif %}
+    </div>
+    
+    <div class="game-list">
+        <h2>Mis Juegos</h2>
+        {% if user_games %}
+            {% for game in user_games %}
+                <div class="game-item">
+                    <div>
+                        <strong>{{ game.room_name }}</strong><br>
+                        <small>Estado: {{ game.get_state_display }}</small>
+                    </div>
+                    <div>
+                        <a href="{% url 'game_detail' game.room_name %}" class="btn">Ir al Juego</a>
+                        {% if game.owner == user %}
+                            <a href="{% url 'delete_game' game.room_name %}" class="btn" 
+                               onclick="return confirm('¿Eliminar este juego?')">Eliminar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No tienes juegos activos.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
