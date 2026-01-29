@@ -21,7 +21,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-     # Canales para Websockets
+    # Canales para Websockets
+    'daphne',
     # django por defecto
     'django.contrib.admin',
     'django.contrib.auth',
@@ -29,30 +30,27 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Apps 
+    # Apps
     'blog',
     'products',
     'users',
+    'games',
     #apps de django
     'theme',
     'tailwind',
     'django_browser_reload',
     # Estilos en formularios
     'widget_tweaks',
+    'rest_framework',
+    'api_errors',
+    # + apis
+    'ApisExternasApp',
    
 ]
- # Configuracion de canales
-ASGI_APPLICATION = 'proyecto.asgi.application'
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        "CONFIG": {
-            "host": [("127.0.0.1", 6379)],
-        },
-    },
-}
-
+ 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'game_list'
+LOGOUT_REDIRECT_URL = 'login'
 
 
 
@@ -100,6 +98,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'proyecto.wsgi.application'
+# Configuracion de canales
+ASGI_APPLICATION = 'proyecto.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        "CONFIG": {
+            "host": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 # Database

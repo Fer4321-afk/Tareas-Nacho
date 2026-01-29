@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pokémon API</title>
+</head>
+<body>
+    <h1>Buscar Pokémon</h1>
+    
+    <form method="get">
+        <input type="text" name="name" placeholder="pikachu">
+        <button type="submit">Buscar</button>
+    </form>
+    
+    {% if pokemon %}
+        <h2>{{ pokemon.name }}</h2>
+        <img src="{{ pokemon.image }}" alt="{{ pokemon.name }}">
+        <p>ID: {{ pokemon.id }}</p>
+        <p>Tipos: {{ pokemon.types|join:", " }}</p>
+    {% elif error %}
+        <p style="color:red">{{ error }}</p>
+    {% endif %}
+</body>
+</html>

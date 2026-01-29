@@ -45,11 +45,17 @@
         Productos
         </a>
 
-     <a href="games/" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
-     Juegos
+    <a href="{% url 'game_list' %}" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+    Juegos
     </a>
-
-
+     <!-- Ejercicio API (13) -->
+      <a href="{% url 'api_demo' %}" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+    Api
+    </a>
+  
+      <a href="{% url 'pokemon %}" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+    Pokémon API
+    </a>
 {% endif %}
 
     </nav>

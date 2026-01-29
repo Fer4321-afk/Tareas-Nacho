@@ -15,6 +15,8 @@ urlpatterns = [
     path('blog/', include('blog.urls')),
     path('users/', include(('users.urls','users'), namespace='users')),  # urls de users
     path('products/', include('products.urls')),
-    
+    path('games/', include('games.urls')),  # urls de games
+    path('api/', include('api_errors.urls')), # urls de api_errors
+     path('pokemon-api/', include('ApisExternasApp.urls')),   # urls de ApisExternasApp
    ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

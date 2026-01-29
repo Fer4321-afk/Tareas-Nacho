@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="p-4 max-w-4xl mx-auto">
+    <!-- TÍTULO -->
+    <h1 class="text-2xl font-bold mb-6">Salas de Tic Tac Toe</h1>
+    
+    <!-- USUARIO -->
+    <div class="mb-6 p-3 bg-blue-100 rounded">
+        Usuario: <b>{{ user.username }}</b> | 
+        <a href="{% url 'logout' %}" class="text-red-500 ml-4">Salir</a>
+    </div>
+
+    <!-- CREAR SALA -->
+    <div class="mb-8 p-4 border rounded">
+        <h2 class="font-bold mb-2">Crear sala:</h2>
+        <form method="post" action="{% url 'create_game' %}" class="flex">
+            {% csrf_token %}
+            <input type="text" name="room_name" placeholder="Nombre" required class="flex-1 border p-2 mr-2">
+            <button type="submit" class="bg-green-500 text-white p-2">Crear</button>
+        </form>
+    </div>
+
+    <!-- SALAS ESPERANDO -->
+    <div class="mb-8">
+        <h2 class="font-bold mb-3 text-yellow-600">Salas esperando ({{ waiting_games|length }})</h2>
+        {% if waiting_games %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {% for game in waiting_games %}
+                <a href="{% url 'game_room' game.id %}" class="block p-3 border-2 border-yellow-400 rounded hover:bg-yellow-50">
+                    <b>{{ game.room_name }}</b>
+                    <div class="text-sm text-gray-600">
+                        Creada por: {{ game.created_by.username }} | 
+                        {{ game.created_at|date:"H:i" }}
+                    </div>
+                    <div class="text-green-600 text-sm mt-1">¡Únete!</div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No hay salas esperando</p>
+        {% endif %}
+    </div>
+
+    <!-- JUEGOS ACTIVOS -->
+    <div>
+        <h2 class="font-bold mb-3 text-green-600">Juegos activos ({{ active_games|length }})</h2>
+        {% if active_games %}
+            <div class="space-y-3">
+                {% for game in active_games %}
+                <a href="{% url 'game_room' game.id %}" class="block p-3 border-2 border-green-400 rounded hover:bg-green-50">
+                    <div class="flex justify-between">
+                        <b>{{ game.room_name }}</b>
+                        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded">Activo</span>
+                    </div>
+                    <div class="flex items-center justify-center my-2">
+                        <div class="text-center mx-4">
+                            <div class="text-red-600 font-bold">❌</div>
+                            <div>{{ game.player_x.username }}</div>
+                        </div>
+                        <div class="mx-2">VS</div>
+                        <div class="text-center mx-4">
+                            <div class="text-blue-600 font-bold">⭕</div>
+                            <div>{{ game.player_o.username|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        Turno: <b>{{ game.current_turn }}</b> | 
+                        Espectadores: {{ game.spectators.count|default:0 }}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No hay juegos activos</p>
+        {% endif %}
+    </div>
+
+    <!-- TOTAL -->
+    <div class="mt-8 text-center text-gray-500">
+        Total: {{ waiting_games|length|add:active_games|length }} salas
+    </div>
+</div>
+
+{% endblock %}

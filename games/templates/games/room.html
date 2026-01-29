@@ -1,0 +1,189 @@
+{% extends "base.html" %} 
+{% block content %}
+
+<div class="max-w-2xl mx-auto p-4">
+    <!-- HEADER -->
+    <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+            Sala: {{ game.room_name }}
+        </h1>
+        <div class="status bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" id="status">
+            <span class="font-semibold">Estado:</span> {{ game.status }} | 
+            <span class="font-semibold">Turno:</span> <span id="current-turn" class="font-bold text-blue-600 dark:text-blue-400">{{ game.current_turn }}</span> |
+            <span class="font-semibold">X:</span> {{ game.player_x.username }} |
+            <span class="font-semibold">O:</span> {{ game.player_o.username|default:"Esperando..." }}
+        </div>
+    </div>
+
+  <!-- TABLERO SIMPLIFICADO -->
+    <div id="board" style="
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    margin: 30px auto;
+    width: 320px;
+">
+    {% for cell in game.get_board_list %}
+        <button class="celda" 
+                data-index="{{ forloop.counter0 }}"
+                style="
+                    width: 100px;
+                    height: 100px;
+                    font-size: 40px;
+                    font-weight: bold;
+                    border: 3px solid #333;
+                    background: white;
+                    cursor: pointer;
+                    border-radius: 5px;
+                    transition: all 0.2s;
+                "
+                onmouseover="this.style.backgroundColor='#f9f9f9'"
+                onmouseout="this.style.backgroundColor='white'"
+                onclick="hacerMovimiento({{ forloop.counter0 }})">
+            {% if cell == 'X' %}
+                <span style="color: red;">X</span>
+            {% elif cell == 'O' %}
+                <span style="color: blue;">O</span>
+            {% endif %}
+        </button>
+    {% endfor %}
+</div>
+
+    <!-- CHAT -->
+    <div class="mt-10 border-t pt-6">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-white">Chat</h3>
+        <div class="chat-box bg-gray-50 dark:bg-gray-900 p-4 rounded-lg h-48 overflow-y-auto mb-4" id="chat-box">
+            {% for msg in messages %}
+                <div class="mb-2">
+                    <strong class="text-blue-600 dark:text-blue-400">{{ msg.user.username }}:</strong> 
+                    <span class="text-gray-700 dark:text-gray-300">{{ msg.message }}</span>
+                </div>
+            {% empty %}
+                <div class="text-gray-500 dark:text-gray-400 text-center"></div>
+            {% endfor %}
+        </div>
+        
+        <div class="flex gap-2">
+            <input type="text" 
+                   class="chat-input flex-grow p-3 border border-gray-300 dark:border-gray-600 
+                          rounded-lg dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   id="chat-input" 
+                   placeholder="Escribe un mensaje...">
+            <button onclick="sendMessage()" 
+                    class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 
+                           text-white px-4 py-3 rounded-lg font-medium transition-colors">
+                Enviar
+            </button>
+        </div>
+    </div>
+
+    {{ game_data_json|json_script:"game-data" }}
+
+    <!-- SCRIPT -->
+    <script>
+        const gameData = JSON.parse(JSON.parse(document.getElementById('game-data').textContent));
+        console.log('Datos del juego:', gameData);
+        console.log('ws://' + window.location.host + '/ws/game/' + gameData.game_id + '/')
+        const gameSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/game/' + gameData.game_id + '/'
+        );
+        
+        gameSocket.onopen = function(e) {
+            console.log('Conectado al juego');
+        }
+        
+        gameSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'game_update') {
+                updateBoard(data.board);
+                document.getElementById('current-turn').textContent = data.current_turn;
+                document.getElementById('status').innerHTML = 
+                    `<span class="font-semibold">Estado:</span> ${data.status} | ` +
+                    `<span class="font-semibold">Turno:</span> <span class="font-bold text-blue-600 dark:text-blue-400">${data.current_turn}</span> | ` +
+                    `<span class="font-semibold">X:</span> ${gameData.player_x} | ` +
+                    `<span class="font-semibold">O:</span> ${gameData.player_o || 'Esperando...'}`;
+                
+                if (data.winner) {
+                    setTimeout(() => {
+                        alert(`¡Ganador: ${data.winner === 'draw' ? 'Empate!' : data.winner}!`);
+                    }, 100);
+                }
+            } 
+            else if (data.type === 'chat') {
+                addMessage(data.user, data.message);
+            }
+        };
+        
+        function updateBoard(board) {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                const content = board[index] || '';
+                if (content === 'X') {
+                    cell.innerHTML = '<span class="text-red-600 dark:text-red-400">X</span>';
+                } else if (content === 'O') {
+                    cell.innerHTML = '<span class="text-blue-600 dark:text-blue-400">O</span>';
+                } else {
+                    cell.innerHTML = '';
+                }
+            });
+        }
+        
+        function makeMove(index) {
+            if (!(gameData.is_player_x || gameData.is_player_o)) {
+                alert('Solo los jugadores pueden mover');
+                return;
+            }
+            
+            const player = gameData.is_player_x ? 'X' : 'O';
+            if (player !== gameData.current_turn) {
+                alert('No es tu turno');
+                return;
+            }
+            
+            gameSocket.send(JSON.stringify({
+                type: 'move',
+                position: index,
+                player: player
+            }));
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                gameSocket.send(JSON.stringify({
+                    type: 'chat',
+                    message: message
+                }));
+                input.value = '';
+            }
+        }
+        
+        function addMessage(user, message) {
+            const chatBox = document.getElementById('chat-box');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'mb-2';
+            msgDiv.innerHTML = `<strong class="text-blue-600 dark:text-blue-400">${user}:</strong> <span class="text-gray-700 dark:text-gray-300">${message}</span>`;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+
+    <div class="text-center mt-8 pt-4 border-t">
+        <a href="{% url 'game_list' %}" 
+           onclick="sendMessage()" 
+                    class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 
+                           text-white px-4 py-3 rounded-lg font-medium transition-colors">
+            ← Volver a salas
+        </a>
+    </div>
+</div>
+
+{% endblock %}
