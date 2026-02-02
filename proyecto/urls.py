@@ -17,6 +17,7 @@ urlpatterns = [
     path('products/', include('products.urls')),
     path('games/', include('games.urls')),  # urls de games
     path('api/', include('api_errors.urls')), # urls de api_errors
-     path('pokemon-api/', include('ApisExternasApp.urls')),   # urls de ApisExternasApp
+    path('pokemon-api/', include('ApisExternasApp.urls')),  # urls de ApisExternasApp
+    path('chatbot/', include('chatbot.urls')),
    ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
