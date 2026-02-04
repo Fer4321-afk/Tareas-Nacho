@@ -46,8 +46,7 @@ INSTALLED_APPS = [
     # + apis
     'ApisExternasApp',
     # chatBotApp'
-    'chatbot'
-    
+    'chatbot',
    
 ]
  
@@ -86,7 +85,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [    os.path.join(BASE_DIR, 'proyecto', 'templates'),  # para home.html
+        'DIRS': [    os.path.join(BASE_DIR, 'proyecto','templates'),  # para home.html
             os.path.join(BASE_DIR, 'theme')],
         'APP_DIRS': True,
         'OPTIONS': {
