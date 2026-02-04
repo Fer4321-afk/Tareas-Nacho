@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h1>Buscar Pokémon</h1>
+    
+    <form method="get" style="margin-bottom: 20px;">
+        <input type="text" name="name" placeholder="pikachu" style="padding: 10px; width: 200px;">
+        <button type="submit" style="padding: 10px 20px;">Buscar</button>
+    </form>
+    
+    {% if pokemon %}
+        <h2>{{ pokemon.name }}</h2>
+        <img src="{{ pokemon.image }}" alt="{{ pokemon.name }}" 
+             style="display: block; margin: 0 auto 15px; max-width: 200px;">
+        <p><strong>ID:</strong> {{ pokemon.id }}</p>
+        <p><strong>Tipos:</strong> {{ pokemon.types|join:", " }}</p>
+    {% elif error %}
+        <p style="color:red; background: #ffe6e6; padding: 10px; border-radius: 5px;">
+            {{ error }}
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -21,24 +21,39 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Canales para Websockets
+    'daphne',
+    # django por defecto
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Apps propias
+    # Apps
     'blog',
-    # Apps o cosas Tailwind
+    'products',
+    'users',
+    'games',
+    #apps de django
+    'theme',
     'tailwind',
     'django_browser_reload',
-    'theme',
-    'users',
-    'products',
-    'games', 
     # Estilos en formularios
     'widget_tweaks',
+    'rest_framework',
+    'api_errors',
+    # + apis
+    'ApisExternasApp',
+    # chatBotApp'
+    'chatbot',
+   
 ]
+ 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'game_list'
+LOGOUT_REDIRECT_URL = 'login'
+
 
 
 MIDDLEWARE = [ #peticiones
@@ -70,7 +85,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [    os.path.join(BASE_DIR, 'proyecto', 'templates'),  # para home.html
+        'DIRS': [    os.path.join(BASE_DIR, 'proyecto','templates'),  # para home.html
             os.path.join(BASE_DIR, 'theme')],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -85,6 +100,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'proyecto.wsgi.application'
+# Configuracion de canales
+ASGI_APPLICATION = 'proyecto.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        "CONFIG": {
+            "host": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -138,3 +164,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/users/login/'
+LOGIN_REDIRECT_URL = '/games/'
+LOGOUT_REDIRECT_URL = '/users/login/'
+
