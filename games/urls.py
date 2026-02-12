@@ -1,12 +1,13 @@
+# games/urls.py
 from django.urls import path
-from django.contrib.auth import views as auth_views
 from . import views
 
+app_name = 'games'
+
 urlpatterns = [
-    path('', views.game_list, name='game_list'),
-    path('create/', views.create_game, name='create_game'),
-    path('room/<int:game_id>/', views.game_room, name='game_room'),
-    path('login/', auth_views.LoginView.as_view(template_name='games/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('register/', views.register, name='register'),
+    path('', views.lista_partidas, name='lista_partidas'),
+    path('crear/', views.crear_partida, name='crear_partida'),
+    path('unirse/<int:game_id>/', views.unirse_partida, name='unirse_partida'),
+    path('sala/<int:game_id>/', views.sala, name='sala'),
+    path('cerrar/<int:game_id>/', views.cerrar_partida, name='cerrar_partida'),
 ]

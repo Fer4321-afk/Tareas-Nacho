@@ -1,114 +1,96 @@
+# games/consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Game, ChatMessage
+from .models import Game
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print("WebSocket connected#15")
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.room_group_name = f'game_{self.game_id}'
+        self.sala_id = self.scope['url_route']['kwargs']['sala_id']
+        self.sala_group = f'sala_{self.sala_id}'
         
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.sala_group, self.channel_name)
         await self.accept()
-        print("WebSocket connected#16")
-    
+        print(f"✅ WebSocket conectado a sala {self.sala_id}")
+        
+        self.game = await self.get_game(self.sala_id)
+        await self.enviar_estado()
+
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-    
+        await self.channel_layer.group_discard(self.sala_group, self.channel_name)
+        print(f"❌ WebSocket desconectado de sala {self.sala_id}")
+
     async def receive(self, text_data):
         data = json.loads(text_data)
+        accion = data['accion']
+        print(f"📩 Acción recibida: {accion}")
         
-        if data['type'] == 'move':
-            await self.handle_move(data)
-        elif data['type'] == 'chat':
-            await self.handle_chat(data)
-    
-    async def handle_move(self, data):
-        game = await self.get_game()
-        board = game.get_board_list()
-        position = data['position']
-        player = data['player']
-        
-        # Verificar movimiento válido
-        if (board[position] == ' ' and 
-            ((player == 'X' and self.scope['user'].username == game.player_x.username) or
-             (player == 'O' and self.scope['user'].username == game.player_o.username))):
-            
-            board[position] = player
-            game.set_board_list(board)
-            
-            # Cambiar turno
-            game.current_turn = 'O' if player == 'X' else 'X'
-            
-            # Verificar si hay ganador
-            winner = game.check_winner()
-            if winner:
-                game.status = 'finished' if winner != 'draw' else 'draw'
-                game.winner = winner if winner != 'draw' else None
-            
-            await self.save_game(game)
-            
-            # Enviar actualización a todos
+        if accion == 'movimiento':
+            await self.procesar_movimiento(data)
+        elif accion == 'chat':
             await self.channel_layer.group_send(
-                self.room_group_name,
+                self.sala_group,
                 {
-                    'type': 'game_update',
-                    'board': board,
-                    'current_turn': game.current_turn,
-                    'status': game.status,
-                    'winner': game.winner,
+                    'type': 'mensaje_chat',
+                    'usuario': data['usuario'],
+                    'mensaje': data['mensaje']
                 }
             )
-    
-    async def handle_chat(self, data):
-        game = await self.get_game()
-        user = self.scope['user']
+        elif accion == 'reiniciar':
+            await self.reset_game()
+            await self.enviar_estado()
+
+    async def procesar_movimiento(self, data):
+        pos = data['posicion']
+        jugador = data['jugador']
         
-        # Guardar mensaje en base de datos
-        await self.save_message(game, user, data['message'])
+        success, msg, winner = await self.make_move(pos, jugador)
         
-        # Enviar a todos en la sala
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'user': user.username,
-                'message': data['message'],
-                'timestamp': str(user.username)  # Simplificado
-            }
-        )
-    
-    async def game_update(self, event):
+        if success:
+            await self.channel_layer.group_send(
+                self.sala_group,
+                {
+                    'type': 'actualizar_tablero',
+                    'board': self.game.board,
+                    'current_turn': self.game.current_turn,
+                    'winner': self.game.winner,
+                    'active': self.game.active
+                }
+            )
+
+    async def actualizar_tablero(self, event):
         await self.send(text_data=json.dumps({
-            'type': 'game_update',
+            'type': 'estado',
             'board': event['board'],
             'current_turn': event['current_turn'],
-            'status': event['status'],
-            'winner': event.get('winner'),
+            'winner': event['winner'],
+            'active': event['active']
         }))
-    
-    async def chat_message(self, event):
+
+    async def mensaje_chat(self, event):
         await self.send(text_data=json.dumps({
             'type': 'chat',
-            'user': event['user'],
-            'message': event['message'],
+            'usuario': event['usuario'],
+            'mensaje': event['mensaje']
         }))
-    
+
+    async def enviar_estado(self):
+        await self.send(text_data=json.dumps({
+            'type': 'estado',
+            'board': self.game.board,
+            'current_turn': self.game.current_turn,
+            'winner': self.game.winner,
+            'active': self.game.active
+        }))
+
     @database_sync_to_async
-    def get_game(self):
-        return Game.objects.get(id=self.game_id)
-    
+    def get_game(self, sala_id):
+        return Game.objects.get(id=sala_id)
+
     @database_sync_to_async
-    def save_game(self, game):
-        game.save()
-    
+    def make_move(self, position, player):
+        return self.game.make_move(position, player)
+
     @database_sync_to_async
-    def save_message(self, game, user, message):
-        ChatMessage.objects.create(game=game, user=user, message=message)
+    def reset_game(self):
+        self.game.reset_board()

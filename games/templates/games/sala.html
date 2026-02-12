@@ -1,0 +1,359 @@
+<!-- theme/templates/games/sala.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 350px; gap: 30px; font-family: 'Arial', sans-serif;">
+
+    <!-- COLUMNA IZQUIERDA - TABLERO -->
+    <div style="background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 30px; padding: 30px; box-shadow: 0 20px 30px rgba(0,0,0,0.1);">
+        
+        <!-- CABECERA -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1 style="margin: 0; font-size: 28px; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                <span style="background: #2c3e50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 18px;">
+                    🎮 {{ game.room_name }}
+                </span>
+            </h1>
+            <div style="display: flex; gap: 10px;">
+                <span style="background: #ff6b6b; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; box-shadow: 0 5px 0 #c0392b;">
+                    ❌ {{ game.player1.username }}
+                </span>
+                {% if game.player2 %}
+                <span style="background: #4ecdc4; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; box-shadow: 0 5px 0 #27ae60;">
+                    ⭕ {{ game.player2.username }}
+                </span>
+                {% else %}
+                <span style="background: #95a5a6; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold;">
+                    ⏳ Esperando...
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if not game.player2 %}
+        <!-- ESPERANDO OPONENTE -->
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 20px; margin-bottom: 20px;">
+            <span style="font-size: 64px;">⏳</span>
+            <h2 style="color: #2c3e50; margin: 20px 0;">Esperando oponente...</h2>
+            <p style="color: #7f8c8d;">Comparte esta URL para que se una otro jugador:</p>
+            <code style="display: block; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 15px; color: #3498db; word-break: break-all;">
+                {{ request.build_absolute_uri }}
+            </code>
+            <a href="{% url 'games:unirse_partida' game.id %}" 
+               style="display: inline-block; margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold;">
+                🔄 Unirse a la partida
+            </a>
+        </div>
+        {% else %}
+        
+        <!-- INDICADOR DE TURNO -->
+        <div id="turno-indicator" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(102,126,234,0.3);">
+            <span style="font-size: 24px; font-weight: bold; color: white;">
+                {% if game.current_turn == 'X' %}
+                    ❌ Turno de {{ game.player1.username }}
+                {% else %}
+                    ⭕ Turno de {{ game.player2.username }}
+                {% endif %}
+                {% if player_symbol == game.current_turn %}
+                    <span style="background: rgba(255,255,255,0.3); padding: 8px 20px; border-radius: 30px; margin-left: 15px; font-size: 18px;">
+                        ¡TÚ!
+                    </span>
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- TABLERO 3x3 -->
+        <div id="tablero" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; background: #2c3e50; padding: 25px; border-radius: 25px; margin-bottom: 20px; box-shadow: inset 0 0 15px rgba(0,0,0,0.3);">
+            {% for pos in "012345678" %}
+                <div id="cell-{{ pos }}" 
+                     data-pos="{{ pos }}"
+                     onclick="hacerMovimiento({{ pos }})"
+                     style="aspect-ratio: 1; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; 
+                            font-size: 64px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+                            box-shadow: 0 8px 0 #bdc3c7, 0 10px 20px rgba(0,0,0,0.2);
+                            {% if board|slice:pos|first == 'X' %}color: #ff6b6b; text-shadow: 3px 3px 0 #c0392b;
+                            {% elif board|slice:pos|first == 'O' %}color: #4ecdc4; text-shadow: 3px 3px 0 #27ae60;
+                            {% endif %}
+                            {% if not game.active or not game.player2 or game.winner or board|slice:pos|first != ' ' or player_symbol != game.current_turn %}
+                            opacity: 0.7; cursor: not-allowed;
+                            {% endif %}">
+                    {% if board|slice:pos|first == 'X' %}❌
+                    {% elif board|slice:pos|first == 'O' %}⭕
+                    {% else %}⬜
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- BOTÓN REINICIAR -->
+        {% if es_player1 %}
+        <button id="btn-reiniciar" 
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; border: none; border-radius: 30px; 
+                       font-size: 18px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 10px 0 #5a67d8; transition: all 0.2s;
+                       display: flex; align-items: center; justify-content: center; gap: 10px;">
+            🔄 Reiniciar partida
+        </button>
+        {% endif %}
+        {% endif %}
+
+        <!-- BOTONES VOLVER/CERRAR -->
+        <div style="display: flex; gap: 15px; margin-top: 25px;">
+            {% if es_player1 %}
+            <a href="{% url 'games:cerrar_partida' game.id %}" 
+               style="background: #e74c3c; color: white; padding: 12px 25px; border-radius: 30px; text-decoration: none; flex: 1; text-align: center; 
+                      font-weight: bold; box-shadow: 0 5px 0 #c0392b; transition: all 0.2s;"
+               onclick="return confirm('¿Cerrar sala?')">
+                🚪 Cerrar sala
+            </a>
+            {% endif %}
+            <a href="{% url 'games:lista_partidas' %}" 
+               style="background: {% if es_player1 %}#95a5a6{% else %}#667eea{% endif %}; color: white; padding: 12px 25px; border-radius: 30px; 
+                      text-decoration: none; flex: 1; text-align: center; font-weight: bold; box-shadow: 0 5px 0 {% if es_player1 %}#7f8c8d{% else %}#5a67d8{% endif %};">
+                ⬅️ Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA - CHAT -->
+    <div style="background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%); border-radius: 30px; padding: 25px; display: flex; flex-direction: column; height: 700px; box-shadow: 0 20px 30px rgba(0,0,0,0.2);">
+        
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #4a5a6a;">
+            <span style="background: #667eea; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                💬
+            </span>
+            <h2 style="margin: 0; color: white; font-size: 24px;">Chat en vivo</h2>
+            {% if game.player2 %}
+            <span style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-left: auto;">
+                🟢 Conectado
+            </span>
+            {% endif %}
+        </div>
+        
+        <div id="chat-mensajes" style="flex: 1; overflow-y: auto; margin-bottom: 20px; padding: 10px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #4a5a6a; padding: 15px; border-radius: 20px; align-self: flex-start; max-width: 85%; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                    <span style="background: #667eea; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        🤖
+                    </span>
+                    <span style="font-size: 12px; color: #a0b8c9;">Sistema</span>
+                    <span style="font-size: 10px; color: #7f8c8d; margin-left: auto;">ahora</span>
+                </div>
+                <div style="color: white; font-size: 14px;">Conectado a la sala {{ game.room_name }}</div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; background: #4a5a6a; padding: 10px; border-radius: 40px;">
+            <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." 
+                   style="flex: 1; padding: 15px 20px; border: none; border-radius: 30px; background: #5a6a7a; color: white; font-size: 14px;"
+                   {% if not game.player2 %}disabled{% endif %}>
+            <button id="btn-enviar" 
+                    style="width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; 
+                           cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 0 #5a67d8; transition: all 0.2s;"
+                    {% if not game.player2 %}disabled{% endif %}>
+                ➤
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    const salaId = {{ game.id }};
+    const username = "{{ user.username }}";
+    const playerSymbol = "{{ player_symbol }}";
+    const wsUrl = `ws://${window.location.host}/ws/sala/${salaId}/`;
+    let socket = new WebSocket(wsUrl);
+    let reconnectAttempts = 0;
+
+    socket.onopen = function(e) {
+        console.log('✅ Conectado al WebSocket');
+        reconnectAttempts = 0;
+        addSystemMessage('Conectado al chat');
+    };
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log('📩 Mensaje recibido:', data.type);
+        
+        if (data.type === 'estado') {
+            // Actualizar tablero
+            for (let i = 0; i < 9; i++) {
+                const cell = document.getElementById(`cell-${i}`);
+                if (cell) {
+                    // Actualizar contenido
+                    if (data.board[i] === 'X') {
+                        cell.innerHTML = '❌';
+                        cell.style.color = '#ff6b6b';
+                    } else if (data.board[i] === 'O') {
+                        cell.innerHTML = '⭕';
+                        cell.style.color = '#4ecdc4';
+                    } else {
+                        cell.innerHTML = '⬜';
+                        cell.style.color = '';
+                    }
+                    
+                    // Habilitar/deshabilitar clicks
+                    if (data.active && !data.winner && data.board[i] === ' ' && playerSymbol === data.current_turn) {
+                        cell.style.opacity = '1';
+                        cell.style.cursor = 'pointer';
+                        cell.onclick = () => hacerMovimiento(i);
+                    } else {
+                        cell.style.opacity = '0.7';
+                        cell.style.cursor = 'not-allowed';
+                        cell.onclick = null;
+                    }
+                }
+            }
+            
+            // Actualizar indicador de turno
+            const turnoDiv = document.getElementById('turno-indicator');
+            if (turnoDiv) {
+                let texto = '';
+                if (data.winner) {
+                    if (data.winner === 'X') texto = `🏆 ¡GANA {{ game.player1.username }}!`;
+                    else if (data.winner === 'O') texto = `🏆 ¡GANA {{ game.player2.username }}!`;
+                } else if (!data.active) {
+                    texto = '🤝 ¡EMPATE!';
+                } else {
+                    if (data.current_turn === 'X') {
+                        texto = `❌ Turno de {{ game.player1.username }}`;
+                    } else {
+                        texto = `⭕ Turno de {{ game.player2.username }}`;
+                    }
+                    if (data.current_turn === playerSymbol) {
+                        texto += ` <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; margin-left: 10px;">¡TÚ!</span>`;
+                    }
+                }
+                turnoDiv.innerHTML = `<span style="font-size: 24px; font-weight: bold; color: white;">${texto}</span>`;
+            }
+        }
+        
+        if (data.type === 'chat') {
+            addChatMessage(data.usuario, data.mensaje);
+        }
+    };
+
+    socket.onclose = function(e) {
+        console.log('❌ Desconectado, reconectando...');
+        reconnectAttempts++;
+        addSystemMessage(`Desconectado. Reintento ${reconnectAttempts}...`);
+        
+        // Reintentar cada 3 segundos
+        setTimeout(() => {
+            socket = new WebSocket(wsUrl);
+        }, 3000);
+    };
+
+    socket.onerror = function(e) {
+        console.error('❌ Error en WebSocket:', e);
+        addSystemMessage('Error de conexión');
+    };
+
+    function hacerMovimiento(pos) {
+        if (playerSymbol && socket.readyState === WebSocket.OPEN) {
+            console.log(`🎯 Movimiento: ${pos} - ${playerSymbol}`);
+            socket.send(JSON.stringify({
+                accion: 'movimiento',
+                posicion: pos,
+                jugador: playerSymbol
+            }));
+        } else {
+            console.warn('⚠️ No se puede enviar movimiento');
+        }
+    }
+
+    function addChatMessage(user, msg) {
+        const chatDiv = document.getElementById('chat-mensajes');
+        if (!chatDiv) return;
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.style.background = user === username ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#4a5a6a';
+        msgDiv.style.padding = '12px 16px';
+        msgDiv.style.borderRadius = '18px';
+        msgDiv.style.marginBottom = '8px';
+        msgDiv.style.alignSelf = user === username ? 'flex-end' : 'flex-start';
+        msgDiv.style.maxWidth = '85%';
+        msgDiv.style.wordWrap = 'break-word';
+        
+        const now = new Date();
+        const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        
+        msgDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                <span style="font-size: 12px; color: #a0b8c9;">${user}</span>
+                <span style="font-size: 10px; color: #7f8c8d; margin-left: auto;">${time}</span>
+            </div>
+            <div style="color: white; font-size: 14px;">${escapeHtml(msg)}</div>
+        `;
+        
+        chatDiv.appendChild(msgDiv);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    function addSystemMessage(msg) {
+        const chatDiv = document.getElementById('chat-mensajes');
+        if (!chatDiv) return;
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.style.background = '#34495e';
+        msgDiv.style.padding = '10px 16px';
+        msgDiv.style.borderRadius = '18px';
+        msgDiv.style.marginBottom = '8px';
+        msgDiv.style.alignSelf = 'flex-start';
+        msgDiv.style.maxWidth = '85%';
+        
+        msgDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                <span style="font-size: 12px; color: #a0b8c9;">🤖 Sistema</span>
+            </div>
+            <div style="color: #ecf0f1; font-size: 13px;">${msg}</div>
+        `;
+        
+        chatDiv.appendChild(msgDiv);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnEnviar = document.getElementById('btn-enviar');
+        const chatInput = document.getElementById('chat-input');
+        const btnReiniciar = document.getElementById('btn-reiniciar');
+        
+        if (btnEnviar) {
+            btnEnviar.addEventListener('click', function() {
+                if (chatInput && chatInput.value.trim() && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        accion: 'chat',
+                        usuario: username,
+                        mensaje: chatInput.value.trim()
+                    }));
+                    chatInput.value = '';
+                }
+            });
+        }
+
+        if (chatInput) {
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    btnEnviar?.click();
+                }
+            });
+        }
+
+        if (btnReiniciar) {
+            btnReiniciar.addEventListener('click', function() {
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ accion: 'reiniciar' }));
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}

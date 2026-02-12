@@ -1,94 +1,66 @@
-import json
-from urllib import request
-from django.shortcuts import render, redirect, get_object_or_404
+# games/views.py
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
-from django.db import IntegrityError
 from django.contrib import messages
-from .models import Game, ChatMessage
+from .models import Game
+
+def lista_partidas(request):
+    games = Game.objects.filter(active=True).order_by('-id')
+    return render(request, 'games/lista_partidas.html', {'games': games})
 
 @login_required
-def game_list(request):
-    """Página principal de juegos - SIN BASE DE DATOS"""
-    # Listas vacías por ahora
-    context = {
-        'active_games': [],
-        'waiting_games': [],
-    }
-    return render(request, 'games/list.html', context)
-
-@login_required
-def create_game(request):
+def crear_partida(request):
     if request.method == 'POST':
         room_name = request.POST.get('room_name')
-        
-        if not room_name:
-            messages.error(request, 'El nombre de la sala no puede estar vacío')
-            return redirect('rooms')
-        
-        # Si ya existe, agregar un número
-        base_name = room_name
-        counter = 1
-        
-        while Game.objects.filter(room_name=room_name).exists():
-            room_name = f"{base_name} ({counter})"
-            counter += 1
-        
-        # Crear la sala
-        game = Game.objects.create(
-            room_name=room_name,
-            created_by=request.user,
-            player_x=request.user,
-            board="-" * 9,
-            current_turn="X"
-        )
-        
-        messages.success(request, f'Sala creada: "{room_name}"')
-        return redirect('game_room', game_id=game.id)
-    
-    return redirect('rooms')
+        if Game.objects.filter(room_name=room_name).exists():
+            messages.error(request, 'Ya existe')
+            return redirect('games:crear_partida')
+        game = Game.objects.create(room_name=room_name, player1=request.user)
+        messages.success(request, f'Sala {room_name} creada')
+        return redirect('games:sala', game_id=game.id)
+    return render(request, 'games/crear_partida.html')
 
 @login_required
-def game_room(request, game_id):
-    """Sala de juego principal"""
+def unirse_partida(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    if game.player2:
+        messages.error(request, 'Sala llena')
+        return redirect('games:lista_partidas')
+    if game.player1 == request.user:
+        messages.error(request, 'Ya eres el creador')
+        return redirect('games:sala', game_id=game.id)
+    game.player2 = request.user
+    game.save()
+    messages.success(request, f'Te uniste a {game.room_name}')
+    return redirect('games:sala', game_id=game.id)
+
+@login_required
+def sala(request, game_id):
     game = get_object_or_404(Game, id=game_id)
     
-    # Si el juego está esperando y hay espacio, unirse como jugador O
-    if game.status == 'waiting' and not game.player_o and request.user != game.player_x:
-        game.player_o = request.user
-        game.status = 'active'
-        game.save()
+    if request.user not in [game.player1, game.player2] and game.player2 is not None:
+        messages.error(request, 'No eres parte')
+        return redirect('games:lista_partidas')
     
-    # Preparar datos para el frontend
-    game_data = {
-        'game_id': game.id,
-        'room_name': game.room_name,
-        'board': game.get_board_list(),
-        'current_turn': game.current_turn,
-        'status': game.status,
-        'player_x': game.player_x.username if game.player_x else None,
-        'player_o': game.player_o.username if game.player_o else None,
-        'user': request.user.username,
-        'is_player_x': request.user.username == game.player_x.username if game.player_x else False,
-        'is_player_o': request.user.username == game.player_o.username if game.player_o else False,
-    }
-    
-    return render(request, 'games/room.html', {
-        'game': game,
-        'game_data_json': json.dumps(game_data),
-        'messages': ChatMessage.objects.filter(game=game)[:20]
-    })
-
-def register(request):
-    """Registro de usuarios (simple)"""
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('game_list')
+    if request.user == game.player1:
+        player_symbol = 'X'
+    elif request.user == game.player2:
+        player_symbol = 'O'
     else:
-        form = UserCreationForm()
+        player_symbol = None
     
-    return render(request, 'games/register.html', {'form': form})
+    context = {
+        'game': game,
+        'board': list(game.board),
+        'player_symbol': player_symbol,
+        'es_player1': request.user == game.player1,
+    }
+    return render(request, 'games/sala.html', context)
+
+@login_required
+def cerrar_partida(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    if request.user == game.player1:
+        game.delete()
+        messages.success(request, 'Partida eliminada')
+    return redirect('games:lista_partidas')
