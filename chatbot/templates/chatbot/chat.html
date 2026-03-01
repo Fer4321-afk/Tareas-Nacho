@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🤖 ChatBOT - Tarea 15</title>
+</head>
+<body>
+    <h1>🤖 ChatBOT con Gemini AI</h1>
+    <p>Pregunta lo que quieras a la inteligencia artificial</p>
+    
+    <div id="chat" style="border: 2px solid #333; padding: 15px; height: 300px; overflow-y: scroll;">
+        <div><strong>ChatBOT:</strong> ¡Hola! Soy tu asistente con Gemini AI. ¿En qué puedo ayudarte?</div>
+    </div>
+    
+    <br>
+    <input type="text" id="message" placeholder="Escribe tu pregunta..." style="width: 300px; padding: 8px;">
+    <button onclick="sendMessage()" style="padding: 8px 15px;">Enviar</button>
+    
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('message');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Mostrar mensaje del usuario
+            const chat = document.getElementById('chat');
+            chat.innerHTML += `<div><strong>Tú:</strong> ${message}</div>`;
+            input.value = '';
+            
+            try {
+                // Enviar al servidor Django
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Mostrar respuesta
+                chat.innerHTML += `<div><strong>ChatBOT:</strong> ${data.reply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
+                
+            } catch (error) {
+                chat.innerHTML += `<div style="color:red"><strong>Error:</strong> ${error}</div>`;
+            }
+        }
+        
+        // Permitir Enter para enviar
+        document.getElementById('message').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
