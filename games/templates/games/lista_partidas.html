@@ -1,0 +1,58 @@
+<!-- theme/templates/games/lista_partidas.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50;">🎮 Partidas disponibles</h1>
+        <a href="{% url 'games:crear_partida' %}" 
+           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                  color: white; padding: 12px 30px; border-radius: 30px; text-decoration: none; 
+                  font-weight: bold; box-shadow: 0 5px 0 #5a67d8;">
+            + Nueva partida
+        </a>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px;">
+        {% for game in games %}
+        <div style="background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #2c3e50;">🎮 {{ game.room_name }}</h2>
+                {% if not game.player2 %}
+                    <span style="background: #ffd93d; padding: 5px 15px; border-radius: 20px; font-size: 14px;">🟡 Esperando</span>
+                {% else %}
+                    <span style="background: #4ecdc4; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px;">🟢 En juego</span>
+                {% endif %}
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="text-align: center;">
+                    <div style="background: #ff6b6b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                        ❌
+                    </div>
+                    <span style="font-weight: bold;">{{ game.player1.username }}</span>
+                </div>
+                <div style="display: flex; align-items: center; color: #7f8c8d;">VS</div>
+                <div style="text-align: center;">
+                    <div style="background: #4ecdc4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                        ⭕
+                    </div>
+                    <span style="font-weight: bold;">{{ game.player2.username|default:"—" }}</span>
+                </div>
+            </div>
+            
+            <a href="{% url 'games:sala' game.id %}" 
+               style="display: block; background: #667eea; color: white; text-align: center; padding: 12px; border-radius: 15px; text-decoration: none; font-weight: bold;">
+                Entrar a la sala
+            </a>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px;">
+            <span style="font-size: 48px;">🎮</span>
+            <h3 style="color: #7f8c8d;">No hay partidas activas</h3>
+            <p style="color: #95a5a6;">¡Crea la primera partida!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

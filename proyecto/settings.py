@@ -1,47 +1,56 @@
-
+# proyecto/settings.py
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent #ARchivos
+load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-mn05h8*f2i9nd%h!eboh&*38d*4_(&z_3-0jgwp6e+&y%ko=k5'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
+# APLICACIONES
 INSTALLED_APPS = [
+    'daphne',  # PRIMERO
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Apps propias
-    'blog',
-    # Apps o cosas Tailwind
+    
+    # TERCEROS
+    'channels',
     'tailwind',
-    'django_browser_reload',
     'theme',
-    'users',
-    'products',
-    'games', 
-    # Estilos en formularios
+    'django_browser_reload',
     'widget_tweaks',
+    'rest_framework',
+    
+    # MIS APPS
+    'blog',
+    'products',
+    'users',
+    'games',
+    'api_errors',
+    'ApisExternasApp',
+    'chatbot',
 ]
 
+# CHANNELS - WEBSOCKETS
+ASGI_APPLICATION = 'proyecto.asgi.application'
 
-MIDDLEWARE = [ #peticiones
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],  
+        },
+    },
+}
+
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,29 +58,19 @@ MIDDLEWARE = [ #peticiones
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    #Tailwind 
     'django_browser_reload.middleware.BrowserReloadMiddleware',
-
 ]
-# Node y nombre de la app de tailwind
-TAILWIND_APP_NAME = 'theme'
-NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
-
 
 ROOT_URLCONF = 'proyecto.urls'
-# Archivos Staticos:
-STATIC_URL = 'proyecto/static/'
-STATICFILES_DIRS = [BASE_DIR /'proyecto' / 'static']
 
-#Cargar imagenes
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+# TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [    os.path.join(BASE_DIR, 'proyecto', 'templates'),  # para home.html
-            os.path.join(BASE_DIR, 'theme')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'proyecto', 'templates'),
+            os.path.join(BASE_DIR, 'theme', 'templates'), 
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,12 +83,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'proyecto.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+# DATABASE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -97,44 +91,20 @@ DATABASES = {
     }
 }
 
+# STATIC Y MEDIA - ✅ CORREGIDO
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'proyecto' / 'static']
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# TAILWIND
+TAILWIND_APP_NAME = 'theme'
+NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# LOGIN
+LOGIN_URL = '/users/login/'
+LOGIN_REDIRECT_URL = '/games/'
+LOGOUT_REDIRECT_URL = '/users/login/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

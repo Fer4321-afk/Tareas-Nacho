@@ -17,5 +17,5 @@ def post_new(request):
             newpost = form.save(commit=False)
             newpost.user = request.user
             newpost.save()
-    return redirect('products:product_list')
-# Create your views here.
+    return redirect('products:list')
+

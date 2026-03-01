@@ -1,0 +1,36 @@
+<!-- theme/templates/games/crear_partida.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto;">
+    <div style="background: white; border-radius: 30px; padding: 40px; box-shadow: 0 20px 30px rgba(0,0,0,0.1);">
+        <h1 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">🎮 Crear nueva partida</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 10px; color: #34495e; font-weight: bold;">
+                    Nombre de la sala:
+                </label>
+                <input type="text" name="room_name" required
+                       style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 15px; 
+                              font-size: 16px; box-sizing: border-box;">
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <button type="submit" 
+                        style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                               color: white; padding: 15px; border: none; border-radius: 15px; 
+                               font-size: 16px; font-weight: bold; cursor: pointer;">
+                    ✅ Crear partida
+                </button>
+                <a href="{% url 'games:lista_partidas' %}" 
+                   style="flex: 1; background: #95a5a6; color: white; padding: 15px; border-radius: 15px; 
+                          text-decoration: none; text-align: center; font-weight: bold;">
+                    ❌ Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

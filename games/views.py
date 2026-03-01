@@ -1,49 +1,66 @@
-from django.shortcuts import render, redirect, get_object_or_404
+# games/views.py
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Game
 
-@login_required
-def game_list(request):
-    games = Game.objects.all()
-    if request.method == "POST":
-        room_name = request.POST.get("room_name")
-        if room_name and not Game.objects.filter(room_name=room_name).exists():
-            Game.objects.create(room_name=room_name, owner=request.user)
-        return redirect('games:game_list')
-    return render(request, 'games/game_list.html', {'games': games})
+def lista_partidas(request):
+    games = Game.objects.filter(active=True).order_by('-id')
+    return render(request, 'games/lista_partidas.html', {'games': games})
 
 @login_required
-def play_game(request, game_id):
+def crear_partida(request):
+    if request.method == 'POST':
+        room_name = request.POST.get('room_name')
+        if Game.objects.filter(room_name=room_name).exists():
+            messages.error(request, 'Ya existe')
+            return redirect('games:crear_partida')
+        game = Game.objects.create(room_name=room_name, player1=request.user)
+        messages.success(request, f'Sala {room_name} creada')
+        return redirect('games:sala', game_id=game.id)
+    return render(request, 'games/crear_partida.html')
+
+@login_required
+def unirse_partida(request, game_id):
     game = get_object_or_404(Game, id=game_id)
-    board = list(game.board)
+    if game.player2:
+        messages.error(request, 'Sala llena')
+        return redirect('games:lista_partidas')
+    if game.player1 == request.user:
+        messages.error(request, 'Ya eres el creador')
+        return redirect('games:sala', game_id=game.id)
+    game.player2 = request.user
+    game.save()
+    messages.success(request, f'Te uniste a {game.room_name}')
+    return redirect('games:sala', game_id=game.id)
 
-    # Eliminar partida terminada si el owner lo solicita
-    if request.method == "POST" and "delete" in request.POST and request.user == game.owner:
+@login_required
+def sala(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    
+    if request.user not in [game.player1, game.player2] and game.player2 is not None:
+        messages.error(request, 'No eres parte')
+        return redirect('games:lista_partidas')
+    
+    if request.user == game.player1:
+        player_symbol = 'X'
+    elif request.user == game.player2:
+        player_symbol = 'O'
+    else:
+        player_symbol = None
+    
+    context = {
+        'game': game,
+        'board': list(game.board),
+        'player_symbol': player_symbol,
+        'es_player1': request.user == game.player1,
+    }
+    return render(request, 'games/sala.html', context)
+
+@login_required
+def cerrar_partida(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    if request.user == game.player1:
         game.delete()
-        return redirect('games:game_list')
-
-    # Solo el dueño puede jugar
-    if request.method == "POST" and request.user == game.owner and game.state == "active":
-        move = int(request.POST.get("move"))
-        if board[move] == ' ':
-            board[move] = 'X' if game.active_player == 1 else 'O'
-            game.board = ''.join(board)
-            game.active_player = 2 if game.active_player == 1 else 1
-
-            # Comprobar ganador
-            combos = [
-                [0,1,2],[3,4,5],[6,7,8],
-                [0,3,6],[1,4,7],[2,5,8],
-                [0,4,8],[2,4,6]
-            ]
-            for a,b,c in combos:
-                if board[a] == board[b] == board[c] != ' ':
-                    game.state = 'won'
-                    game.winner = board[a]
-                    break
-            if ' ' not in board and game.state == 'active':
-                game.state = 'tie'
-
-            game.save()
-
-    return render(request, 'games/play_game.html', {'game': game})
+        messages.success(request, 'Partida eliminada')
+    return redirect('games:lista_partidas')
