@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4"> API REST Endpoints</h1>
+    
+    <!-- 3 BOTONES PRINCIPALES -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <a href="/api/status/" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+                🟢 Estado del Servidor
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="/api/errors/" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+                📋 Todos los Errores
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="/api/errors/404/" class="text-white px-3 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+                🔍 Error Específico (404)
+            </a>
+        </div>
+    </div>
+{% endblock %}
